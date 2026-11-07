@@ -1,0 +1,6 @@
+{
+ "schemaVersion": 1, "id": "cursorposition", "version": "1.0.0",
+ "name": "Cursor Position", "description": "Choose where your inventory cursor reappears. F8 opens settings.",
+ "environment": "client", "mixins": ["cursorposition.mixins.json"],
+ "depends": {"fabricloader": ">=0.16.10", "minecraft": "1.21.4", "java": ">=21"}
+}
