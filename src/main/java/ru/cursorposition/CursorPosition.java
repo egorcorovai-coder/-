@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import org.lwjgl.glfw.GLFW;
 import ru.cursorposition.mixin.MouseInvoker;
 import java.nio.file.Files;
@@ -18,6 +20,7 @@ public final class CursorPosition {
         public double x = 0.5, y = 0.5;
     }
     public static final Config CONFIG = load();
+    private static Screen pendingNudge;
     private static double lastX = 0.5, lastY = 0.5;
     private static Config load() {
         try {
@@ -48,6 +51,7 @@ public final class CursorPosition {
         GLFW.glfwGetWindowSize(handle, w, h);
         double x = "LAST".equals(CONFIG.mode) ? lastX : CONFIG.x;
         double y = "LAST".equals(CONFIG.mode) ? lastY : CONFIG.y;
+        pendingNudge = client.currentScreen;
         double cursorX = x * Math.max(0, w[0] - 1);
         double cursorY = y * Math.max(0, h[0] - 1);
         GLFW.glfwSetCursorPos(handle, cursorX, cursorY);
@@ -61,4 +65,32 @@ public final class CursorPosition {
                 cursorY * client.getWindow().getScaledHeight() / h[0]);
         }
     }
+    public static void beforeMouseTick(MinecraftClient client) {
+        if (!(client.currentScreen instanceof HandledScreen<?>) || client.mouse.isCursorLocked()) {
+            pendingNudge = null;
+            return;
+        }
+        long handle = client.getWindow().getHandle();
+        double[] x = new double[1], y = new double[1];
+        GLFW.glfwGetCursorPos(handle, x, y);
+        if (pendingNudge == client.currentScreen) {
+            // Wait until native events from unlocking the cursor have been processed.
+            // Generate the requested one-pixel movement once, never on subsequent ticks.
+            int[] w = new int[1], h = new int[1];
+            GLFW.glfwGetWindowSize(handle, w, h);
+            x[0] = x[0] + 1 < w[0] ? x[0] + 1 : Math.max(0, x[0] - 1);
+            GLFW.glfwSetCursorPos(handle, x[0], y[0]);
+        }
+        pendingNudge = null;
+        // Delayed GLFW callbacks may contain the old center position. The native
+        // cursor position is authoritative immediately before input/rendering.
+        client.mouse.setResolutionChanged();
+        ((MouseInvoker) client.mouse).cursorposition$onCursorPos(handle, x[0], y[0]);
+        if (client.getWindow().getWidth() > 0 && client.getWindow().getHeight() > 0) {
+            client.currentScreen.mouseMoved(
+                x[0] * client.getWindow().getScaledWidth() / client.getWindow().getWidth(),
+                y[0] * client.getWindow().getScaledHeight() / client.getWindow().getHeight());
+        }
+    }
+
 }

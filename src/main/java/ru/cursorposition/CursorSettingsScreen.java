@@ -8,7 +8,7 @@ import net.minecraft.text.Text;
 public final class CursorSettingsScreen extends Screen {
     private final Screen parent;
     private boolean picking;
-    public CursorSettingsScreen(Screen parent) { super(Text.literal("Позиция курсора")); this.parent = parent; }
+    public CursorSettingsScreen(Screen parent) { super(Text.literal("Позиция курсора 1.0.2")); this.parent = parent; }
     private Text modeText() {
         return Text.literal("Режим: " + ("LAST".equals(CursorPosition.CONFIG.mode) ? "последняя позиция" : "выбранная точка"));
     }

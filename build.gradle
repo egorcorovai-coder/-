@@ -1,5 +1,5 @@
 plugins { id 'fabric-loom' version '1.9.2' }
-version = '1.0.1'
+version = '1.0.2'
 group = 'ru.cursorposition'
 base { archivesName = 'cursor-position' }
 repositories { mavenCentral() }
