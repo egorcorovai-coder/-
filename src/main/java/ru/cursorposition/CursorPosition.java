@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
+import ru.cursorposition.mixin.MouseInvoker;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,17 @@ public final class CursorPosition {
         GLFW.glfwGetWindowSize(handle, w, h);
         double x = "LAST".equals(CONFIG.mode) ? lastX : CONFIG.x;
         double y = "LAST".equals(CONFIG.mode) ? lastY : CONFIG.y;
-        GLFW.glfwSetCursorPos(handle, x * Math.max(0, w[0] - 1), y * Math.max(0, h[0] - 1));
+        double cursorX = x * Math.max(0, w[0] - 1);
+        double cursorY = y * Math.max(0, h[0] - 1);
+        GLFW.glfwSetCursorPos(handle, cursorX, cursorY);
+        // GLFW warping need not deliver a motion callback. Update Minecraft's
+        // cached coordinates immediately, without treating the warp as camera motion.
+        client.mouse.setResolutionChanged();
+        ((MouseInvoker) client.mouse).cursorposition$onCursorPos(handle, cursorX, cursorY);
+        if (client.currentScreen != null && w[0] > 0 && h[0] > 0) {
+            client.currentScreen.mouseMoved(
+                cursorX * client.getWindow().getScaledWidth() / w[0],
+                cursorY * client.getWindow().getScaledHeight() / h[0]);
+        }
     }
 }

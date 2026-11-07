@@ -1,4 +1,13 @@
 {
- "required": true, "package": "ru.cursorposition.mixin", "compatibilityLevel": "JAVA_21",
- "client": ["MinecraftClientMixin", "KeyboardMixin"], "injectors": {"defaultRequire": 1}
+  "required": true,
+  "package": "ru.cursorposition.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MinecraftClientMixin",
+    "KeyboardMixin",
+    "MouseInvoker"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
