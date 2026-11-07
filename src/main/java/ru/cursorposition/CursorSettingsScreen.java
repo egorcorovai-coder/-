@@ -8,17 +8,21 @@ import net.minecraft.text.Text;
 public final class CursorSettingsScreen extends Screen {
     private final Screen parent;
     private boolean picking;
-    public CursorSettingsScreen(Screen parent) { super(Text.literal("Позиция курсора 1.0.2")); this.parent = parent; }
+    public CursorSettingsScreen(Screen parent) { super(Text.literal("Позиция курсора 1.0.3")); this.parent = parent; }
     private Text modeText() {
-        return Text.literal("Режим: " + ("LAST".equals(CursorPosition.CONFIG.mode) ? "последняя позиция" : "выбранная точка"));
+        return Text.literal("Режим: " + ("SLOT".equals(CursorPosition.CONFIG.mode) ? "слот инвентаря" : ("LAST".equals(CursorPosition.CONFIG.mode) ? "последняя позиция" : "выбранная точка")));
     }
     @Override protected void init() {
         addDrawableChild(ButtonWidget.builder(modeText(), b -> {
             CursorPosition.CONFIG.mode = "LAST".equals(CursorPosition.CONFIG.mode) ? "FIXED" : "LAST";
             CursorPosition.save(); b.setMessage(modeText());
-        }).dimensions(width / 2 - 130, height / 2 - 40, 260, 20).build());
+        }).dimensions(width / 2 - 130, height / 2 - 62, 260, 20).build());
+        var inventoryButton = addDrawableChild(ButtonWidget.builder(Text.literal("Выбрать слот в инвентаре"), b -> {
+            if (client.player != null) client.setScreen(new InventoryCursorScreen(client.player, this));
+        }).dimensions(width / 2 - 130, height / 2 - 36, 260, 20).build());
+        inventoryButton.active = client.player != null;
         addDrawableChild(ButtonWidget.builder(Text.literal("Выбрать точку на экране"), b -> picking = true)
-            .dimensions(width / 2 - 130, height / 2 - 14, 260, 20).build());
+            .dimensions(width / 2 - 130, height / 2 - 10, 260, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("По центру"), b -> {
             CursorPosition.CONFIG.mode = "FIXED"; CursorPosition.CONFIG.x = 0.5; CursorPosition.CONFIG.y = 0.5;
             CursorPosition.save(); clearAndInit();
@@ -46,7 +50,7 @@ public final class CursorSettingsScreen extends Screen {
             context.fill(mouseX, mouseY - 7, mouseX + 1, mouseY + 8, 0xFFFFFFFF);
         } else {
             super.render(context, mouseX, mouseY, delta);
-            context.drawCenteredTextWithShadow(textRenderer, title, width / 2, height / 2 - 70, 0xFFFFFF);
+            context.drawCenteredTextWithShadow(textRenderer, title, width / 2, height / 2 - 88, 0xFFFFFF);
         }
     }
     @Override public void close() {

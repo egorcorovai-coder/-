@@ -18,6 +18,7 @@ public final class CursorPosition {
     public static class Config {
         public String mode = "FIXED";
         public double x = 0.5, y = 0.5;
+        public int slot = 0;
     }
     public static final Config CONFIG = load();
     private static Screen pendingNudge;
@@ -26,7 +27,7 @@ public final class CursorPosition {
         try {
             if (Files.exists(FILE)) {
                 Config c = GSON.fromJson(Files.readString(FILE), Config.class);
-                if (c != null && ("FIXED".equals(c.mode) || "LAST".equals(c.mode))) {
+                if (c != null && ("FIXED".equals(c.mode) || "LAST".equals(c.mode) || "SLOT".equals(c.mode))) {
                     c.x = clamp(c.x); c.y = clamp(c.y); return c;
                 }
             }
@@ -54,6 +55,19 @@ public final class CursorPosition {
         pendingNudge = client.currentScreen;
         double cursorX = x * Math.max(0, w[0] - 1);
         double cursorY = y * Math.max(0, h[0] - 1);
+        if ("SLOT".equals(CONFIG.mode) && client.player != null
+            && client.currentScreen instanceof HandledScreen<?> screen) {
+            var origin = (ru.cursorposition.mixin.HandledScreenAccessor) screen;
+            for (var slot : screen.getScreenHandler().slots) {
+                if (slot.inventory == client.player.getInventory() && slot.getIndex() == CONFIG.slot) {
+                    cursorX = (origin.cursorposition$getX() + slot.x + 8.0)
+                        * client.getWindow().getWidth() / client.getWindow().getScaledWidth();
+                    cursorY = (origin.cursorposition$getY() + slot.y + 8.0)
+                        * client.getWindow().getHeight() / client.getWindow().getScaledHeight();
+                    break;
+                }
+            }
+        }
         GLFW.glfwSetCursorPos(handle, cursorX, cursorY);
         // GLFW warping need not deliver a motion callback. Update Minecraft's
         // cached coordinates immediately, without treating the warp as camera motion.

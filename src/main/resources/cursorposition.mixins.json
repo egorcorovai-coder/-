@@ -6,7 +6,8 @@
     "MinecraftClientMixin",
     "KeyboardMixin",
     "MouseInvoker",
-    "MouseMixin"
+    "MouseMixin",
+    "HandledScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
